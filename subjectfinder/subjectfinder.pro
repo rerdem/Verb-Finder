@@ -11,16 +11,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    gameslide.cpp \
-    player.cpp \
-    scorer.cpp \
-    inventoryscreen.cpp
+        mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    gameslide.h \
-    player.h \
-    scorer.h \
-    inventoryscreen.h
+HEADERS  += mainwindow.h
 
 FORMS    +=

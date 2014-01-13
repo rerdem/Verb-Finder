@@ -8,12 +8,6 @@ using namespace std;
 #include <fstream>
 #include <QtGui>
 #include <QPushButton>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include "gameslide.h"
-#include "player.h"
-#include "scorer.h"
-#include "inventoryscreen.h"
 
 
 class mainwindow : public QMainWindow
@@ -25,35 +19,19 @@ public:
     ~mainwindow();
     
 private:
-    QVector<GameSlide*> slides;
-    Player *currentplayer;
-    Scorer *referee;
-
     QWidget *centralWidget;
     QGridLayout *mainBox;
-    QTextEdit *slideTextEdit;
-    QLabel *slideImageLabel;
-    QPushButton *inventoryButton;
-    QPushButton *but01, *but02, *but03, *but04, *but05,
-                *but06, *but07, *but08, *but09, *but10;
-    int opt01, opt02, opt03, opt04, opt05,
-        opt06, opt07, opt08, opt09, opt10;
-
-    QString xmlpath;
-    QString imgpath;
-    QSignalMapper *signalMapper;
+    QTextEdit *outputTextEdit;
+    QPushButton *analyzeButton;
+    QPushButton *resetButton;
 
     void createInterface();
-    void initialize();
-    void game();
+
 
 private slots:
-    void changeSlide(const int goalID);
-    void save();
-    void load();
     void about();
     void reset();
-    void showInventory();
+    void analyze();
 };
 
 #endif // MAINWINDOW_H
