@@ -8,6 +8,7 @@ using namespace std;
 #include <fstream>
 #include <QtGui>
 #include <QPushButton>
+#include <QtWidgets>
 
 
 class mainwindow : public QMainWindow

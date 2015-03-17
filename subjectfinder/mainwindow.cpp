@@ -24,7 +24,7 @@ mainwindow::mainwindow(QWidget *parent) :
     **/
 
     //set QString to UTF-8 encoding for special characters
-    QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+    //QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 
     createInterface();
 }
