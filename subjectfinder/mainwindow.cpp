@@ -113,7 +113,56 @@ void mainwindow::analyze()
 
         for (int i=0; i<stringList.size(); i++)
         {
-            outputTextEdit->append(stringList.at(i).toUtf8().constData());
+            outputTextEdit->append(stringList.at(i).toUtf8().constData()+checkVerb(stringList.at(i).toUtf8()));
         }
     }
+}
+
+QString mainwindow::checkVerb(QString satz)
+{
+    QStringList worte = satz.split(" ");
+    bool langerSatz=false;
+    QString ausgabe="Keine Ausgabe";
+    if ((worte.length()-1)!= 0) {
+        QString erstes = worte.value( 0 );
+        langerSatz=true;
+    }
+    QString verb = worte.value( worte.length() - 1 );
+
+    //Präsens
+    if (verb.contains("yorum")) {
+        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 1. Pers. Singular";
+        if (langerSatz) ausgabe.append(" Langer Satz.");
+        return ausgabe;
+    }
+    else {
+        if (verb.contains("yorsun")) {
+            QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 2. Pers. Singular";
+            return ausgabe;
+        }
+        else {
+            if (verb.contains("yoruz")) {
+                QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 1. Pers. Plural";
+                return ausgabe;
+            }
+            else {
+                if (verb.contains("yorsunuz")) {
+                    QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 2. Pers. Plural";
+                    return ausgabe;
+                }
+                else {
+                    if (verb.contains("yorlar")) {
+                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 3. Pers. Plural";
+                        return ausgabe;
+                    }
+                    else {
+                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 3. Pers. Singular";
+                        return ausgabe;
+                    }
+                }
+            }
+        }
+    }
+
+    return ausgabe;
 }

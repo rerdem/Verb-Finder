@@ -27,6 +27,7 @@ private:
     QPushButton *resetButton;
 
     void createInterface();
+    QString checkVerb(QString satz);
 
 
 private slots:

@@ -6,7 +6,7 @@
 
 QT       += core gui widgets
 
-TARGET = mansion
+TARGET = subjectfinder
 TEMPLATE = app
 
 
