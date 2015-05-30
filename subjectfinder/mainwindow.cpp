@@ -14,18 +14,6 @@
 mainwindow::mainwindow(QWidget *parent) :
     QMainWindow(parent)
 {
-    //create gamefiles folder, if it doesn't exist
-    /**
-    QDir path;
-    QDir().mkdir("gamefiles");
-    path = QDir::currentPath() + QDir::separator() +"gamefiles";
-    xmlpath=QDir::currentPath() + QDir::separator() + "gamefiles" + QDir::separator() + "adventure.xml";
-    imgpath=QDir::currentPath() + QDir::separator() + "gamefiles" + QDir::separator() + + "images" + QDir::separator();
-    **/
-
-    //set QString to UTF-8 encoding for special characters
-    //QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
     createInterface();
 }
 
@@ -92,7 +80,7 @@ void mainwindow::about()
 
 void mainwindow::analyze()
 {
-    QString datapath = QFileDialog::getOpenFileName(this, tr("÷ffne Text..."), QDir::currentPath(), tr("Textdateien (*.txt)"));
+    QString datapath = QFileDialog::getOpenFileName(this, tr("√ñffne Text..."), QDir::currentPath(), tr("Textdateien (*.txt)"));
     if (datapath.isNull()==false)
     {
         //lies txt in QStringList
@@ -120,6 +108,35 @@ void mainwindow::analyze()
 
 QString mainwindow::checkVerb(QString satz)
 {
+    //lies t√ºrkische Nomen ein
+    QStringList nomenList;
+    QFile textFile("TR_nomen_dict.txt");
+    if (textFile.open(QFile::ReadOnly))
+    {
+        //lies txt in QStringList
+        QTextStream textStream(&textFile);
+        textStream.setCodec("UTF-8");
+        while (true)
+        {
+            QString line = textStream.readLine();
+            if (line.isNull())
+                break;
+            else
+                nomenList.append(line);
+        }
+        textFile.close();
+
+        //f√ºge Personalpronomen hinzu
+        nomenList.append("ben");
+        nomenList.append("sen");
+        nomenList.append("o");
+        nomenList.append("biz");
+        nomenList.append("siz");
+        nomenList.append("onlar");
+
+    }
+
+    //finde Verb
     QStringList worte = satz.split(" ");
     bool langerSatz=false;
     QString ausgabe="Keine Ausgabe";
@@ -129,34 +146,117 @@ QString mainwindow::checkVerb(QString satz)
     }
     QString verb = worte.value( worte.length() - 1 );
 
-    //Pr‰sens
+    //Pr√§sens
     if (verb.contains("yorum")) {
-        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr‰s. 1. Pers. Singular";
-        if (langerSatz) ausgabe.append(" Langer Satz.");
+        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr√§s. 1. Pers. Singular";
+        if (langerSatz) {
+            bool subject=false;
+            for (int i=0; i<nomenList.length(); i++) {
+                if (worte.value(0).toLower()==nomenList.value(i).toLower())
+                {
+                    ausgabe.append(" Subjekt: ");
+                    ausgabe.append(worte.value(0));
+                    subject=true;
+                    break;
+                }
+            }
+            if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
+        }
+        else ausgabe.append(" Subjekt im Verb enthalten.");
         return ausgabe;
     }
     else {
         if (verb.contains("yorsun")) {
-            QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr‰s. 2. Pers. Singular";
+            QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr√§s. 2. Pers. Singular";
+            if (langerSatz) {
+                bool subject=false;
+                for (int i=0; i<nomenList.length(); i++) {
+                    if (worte.value(0).toLower()==nomenList.value(i).toLower())
+                    {
+                        ausgabe.append(" Subjekt: ");
+                        ausgabe.append(worte.value(0));
+                        subject=true;
+                        break;
+                    }
+                }
+                if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
+            }
+            else ausgabe.append(" Subjekt im Verb enthalten.");
             return ausgabe;
         }
         else {
             if (verb.contains("yoruz")) {
-                QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr‰s. 1. Pers. Plural";
+                QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr√§s. 1. Pers. Plural";
+                if (langerSatz) {
+                    bool subject=false;
+                    for (int i=0; i<nomenList.length(); i++) {
+                        if (worte.value(0).toLower()==nomenList.value(i).toLower())
+                        {
+                            ausgabe.append(" Subjekt: ");
+                            ausgabe.append(worte.value(0));
+                            subject=true;
+                            break;
+                        }
+                    }
+                    if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
+                }
+                else ausgabe.append(" Subjekt im Verb enthalten.");
                 return ausgabe;
             }
             else {
                 if (verb.contains("yorsunuz")) {
-                    QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr‰s. 2. Pers. Plural";
+                    QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr√§s. 2. Pers. Plural";
+                    if (langerSatz) {
+                        bool subject=false;
+                        for (int i=0; i<nomenList.length(); i++) {
+                            if (worte.value(0).toLower()==nomenList.value(i).toLower())
+                            {
+                                ausgabe.append(" Subjekt: ");
+                                ausgabe.append(worte.value(0));
+                                subject=true;
+                                break;
+                            }
+                        }
+                        if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
+                    }
+                    else ausgabe.append(" Subjekt im Verb enthalten.");
                     return ausgabe;
                 }
                 else {
                     if (verb.contains("yorlar")) {
-                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr‰s. 3. Pers. Plural";
+                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr√§s. 3. Pers. Plural";
+                        if (langerSatz) {
+                            bool subject=false;
+                            for (int i=0; i<nomenList.length(); i++) {
+                                if (worte.value(0).toLower()==nomenList.value(i).toLower())
+                                {
+                                    ausgabe.append(" Subjekt: ");
+                                    ausgabe.append(worte.value(0));
+                                    subject=true;
+                                    break;
+                                }
+                            }
+                            if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
+                        }
+                        else ausgabe.append(" Subjekt im Verb enthalten.");
                         return ausgabe;
                     }
                     else {
-                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr‰s. 3. Pers. Singular";
+                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Pr√§s. 3. Pers. Singular";
+                        if (langerSatz) {
+                            bool subject=false;
+                            for (int i=0; i<nomenList.length(); i++) {
+                                if (worte.value(0).toLower()==nomenList.value(i).toLower())
+                                {
+                                    ausgabe.append(" Subjekt: ");
+                                    ausgabe.append(worte.value(0));
+                                    subject=true;
+                                    break;
+                                }
+                            }
+                            if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
+                        }
+                        else ausgabe.append(" Subjekt im Verb enthalten.");
                         return ausgabe;
                     }
                 }
