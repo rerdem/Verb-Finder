@@ -242,22 +242,28 @@ QString mainwindow::checkVerb(QString satz)
                         return ausgabe;
                     }
                     else {
-                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 3. Pers. Singular";
-                        if (langerSatz) {
-                            bool subject=false;
-                            for (int i=0; i<nomenList.length(); i++) {
-                                if (worte.value(0).toLower()==nomenList.value(i).toLower())
-                                {
-                                    ausgabe.append(" Subjekt: ");
-                                    ausgabe.append(worte.value(0));
-                                    subject=true;
-                                    break;
+                        if (verb.contains("yor")) {
+                            QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 3. Pers. Singular";
+                            if (langerSatz) {
+                                bool subject=false;
+                                for (int i=0; i<nomenList.length(); i++) {
+                                    if (worte.value(0).toLower()==nomenList.value(i).toLower())
+                                    {
+                                        ausgabe.append(" Subjekt: ");
+                                        ausgabe.append(worte.value(0));
+                                        subject=true;
+                                        break;
+                                    }
                                 }
+                                if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
                             }
-                            if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
+                            else ausgabe.append(" Subjekt im Verb enthalten.");
+                            return ausgabe;
                         }
-                        else ausgabe.append(" Subjekt im Verb enthalten.");
-                        return ausgabe;
+                        else {
+                            QString ausgabe=" Kein grammatikalisch korrekter Satz des türkischen Präsens.";
+                            return ausgabe;
+                        }
                     }
                 }
             }
