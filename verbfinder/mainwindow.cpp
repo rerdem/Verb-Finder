@@ -11,19 +11,19 @@
 #include "mainwindow.h"
 
 
-mainwindow::mainwindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
     createInterface();
 }
 
 
-mainwindow::~mainwindow()
+MainWindow::~MainWindow()
 {
 }
 
 
-void mainwindow::createInterface()
+void MainWindow::createInterface()
 {
     centralWidget = new QWidget(this);
     this->setCentralWidget( centralWidget );
@@ -66,19 +66,19 @@ void mainwindow::createInterface()
 }
 
 
-void mainwindow::reset()
+void MainWindow::reset()
 {
     outputTextEdit->clear();
 }
 
 
-void mainwindow::about()
+void MainWindow::about()
 {
     QMessageBox::information(this, "About", "A program that can find the subject in Turkish sentences.");
 }
 
 
-void mainwindow::analyze()
+void MainWindow::analyze()
 {
     QString datapath = QFileDialog::getOpenFileName(this, tr("Öffne Text..."), QDir::currentPath(), tr("Textdateien (*.txt)"));
     if (datapath.isNull()==false)
@@ -106,7 +106,7 @@ void mainwindow::analyze()
     }
 }
 
-QString mainwindow::checkVerb(QString satz)
+QString MainWindow::checkVerb(QString satz)
 {
     //lies türkische Nomen ein
     QStringList nomenList;

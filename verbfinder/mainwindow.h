@@ -10,15 +10,14 @@ using namespace std;
 #include <QPushButton>
 #include <QtWidgets>
 
-
-class mainwindow : public QMainWindow
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
-    
+
 public:
-    explicit mainwindow(QWidget *parent = 0);
-    ~mainwindow();
-    
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
+
 private:
     QWidget *centralWidget;
     QGridLayout *mainBox;
@@ -28,7 +27,6 @@ private:
 
     void createInterface();
     QString checkVerb(QString satz);
-
 
 private slots:
     void about();
