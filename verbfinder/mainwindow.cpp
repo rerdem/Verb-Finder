@@ -74,7 +74,7 @@ void MainWindow::reset()
 
 void MainWindow::about()
 {
-    QMessageBox::information(this, "About", "A program that can find the subject in Turkish sentences.");
+    QMessageBox::information(this, "About", "A program that can find the verbs in Turkish sentences.");
 }
 
 
@@ -89,19 +89,47 @@ void MainWindow::analyze()
         textFile.open(QFile::ReadOnly);
         QTextStream textStream(&textFile);
         textStream.setCodec("UTF-8");
-        while (true)
-        {
+        while (true) {
             QString line = textStream.readLine();
             if (line.isNull())
                 break;
-            else
+            else {
                 stringList.append(line);
+            }
         }
         textFile.close();
 
-        for (int i=0; i<stringList.size(); i++)
-        {
-            outputTextEdit->append(stringList.at(i).toUtf8().constData()+checkVerb(stringList.at(i).toUtf8()));
+        //Teile StringList in Sätze auf
+        QString buffer="";
+        QStringList sentences;
+        for (int i=0; i<stringList.size(); i++) {
+            for (int j=0; j<stringList.at(i).length(); j++) {
+                if (stringList.at(i).at(j)=='.') {
+                    buffer.append(stringList.at(i).at(j));
+                    sentences.append(buffer);
+                    buffer="";
+                }
+                else {
+                    buffer.append(stringList.at(i).at(j));
+                }
+            }
+        }
+
+        //entferne leading and trailing spaces
+        for (int i=0; i<sentences.size(); i++) {
+            sentences.replace(i, sentences.at(i).trimmed());
+        }
+
+
+        //output
+        outputTextEdit->append("Raw:\n");
+        for (int i=0; i<stringList.size(); i++) {
+            outputTextEdit->append(stringList.at(i).toUtf8().constData());
+        }
+        outputTextEdit->append("\nProcessed:\n");
+        for (int i=0; i<sentences.size(); i++) {
+//            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
+            outputTextEdit->append(sentences.at(i).toUtf8().constData());
         }
     }
 }

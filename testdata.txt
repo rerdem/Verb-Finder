@@ -8,5 +8,5 @@ Esiyor.
 Yemek pişiriyorlar.
 Ein Kontrollsatz.
 
-Onlar kitap okuyorlar.
-Size gidiyoruz.
+Onlar kitap 
+okuyorlar. Size gidiyoruz.
