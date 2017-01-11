@@ -6,9 +6,10 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QPushButton>
-#include <vector>
-#include <cstdlib> //itoa()
+#include <QVector>
+//#include <cstdlib> //itoa()
 #include "mainwindow.h"
+#include "dictentry.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -186,6 +187,20 @@ void MainWindow::readHunspell()
         suffixe.insert(content.at(1).toInt(), content.at(3).toUtf8().constData());
     }
 
+    //verarbeite Dictionary-Datei
+    //i=1, da die erste Zeile die Anzahl der Einträge beinhaltet
+    QVector<DictEntry> dictEntries({});
+    for (int i=1; i<dic.size(); i++) {
+        QStringList content=dic.at(i).split('/', QString::SkipEmptyParts);
+        DictEntry tempEntry(content.at(0));
+        if (content.size()>1) {
+            QStringList references=content.at(1).split(',');
+            for (int j=0; j<references.size(); j++) {
+                tempEntry.addToSuffixRef(references.at(j).toInt());
+            }
+        }
+        dictEntries.push_back(tempEntry);
+    }
 
     outputTextEdit->append("\nsuffixe:\n");
     for (int i=0; i<suffixe.size(); i++) {
