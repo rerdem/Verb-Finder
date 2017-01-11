@@ -131,10 +131,76 @@ void MainWindow::analyze()
 //            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
             outputTextEdit->append(sentences.at(i).toUtf8().constData());
         }
+
+        readHunspell();
     }
 }
 
-QString MainWindow::checkVerb(QString satz)
+void MainWindow::readHunspell()
+{
+    //lies türkische Affix-Datei ein
+    QStringList aff;
+    QFile affFile("Turkish.aff");
+    if (affFile.open(QFile::ReadOnly))
+    {
+        //lies txt in QStringList
+        QTextStream textStream(&affFile);
+        textStream.setCodec("UTF-8");
+        while (true)
+        {
+            QString line = textStream.readLine();
+            if (line.isNull())
+                break;
+            else
+                aff.append(line);
+        }
+        affFile.close();
+    }
+
+    //lies türkisches Dictionary ein
+    QStringList dic;
+    QFile dicFile("Turkish.dic");
+    if (dicFile.open(QFile::ReadOnly))
+    {
+        //lies txt in QStringList
+        QTextStream textStream(&dicFile);
+        textStream.setCodec("UTF-8");
+        while (true)
+        {
+            QString line = textStream.readLine();
+            if (line.isNull())
+                break;
+            else
+                dic.append(line);
+        }
+        dicFile.close();
+    }
+
+    //verarbeite Affix-Datei
+    //i=6, um die LANG, SET, TRY und FLAG Anweisungen zu übergehen
+    //Da in der türkischen Hunspell Datei nur Suffixe mit einer Möglichkeit
+    //vorhanden sind, können die dazwischen liegenden Zeilen übersprungen werden
+    QStringList suffixe;
+    for (int i=6; i<aff.size(); i+=3) {
+        QStringList content=aff.at(i).split(' ', QString::SkipEmptyParts);
+        suffixe.insert(content.at(1).toInt(), content.at(3).toUtf8().constData());
+    }
+
+
+    outputTextEdit->append("\nsuffixe:\n");
+    for (int i=0; i<suffixe.size(); i++) {
+//            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
+        outputTextEdit->append(suffixe.at(i).toUtf8().constData());
+    }
+
+}
+
+
+QString MainWindow::checkVerb(QString satz) {
+    return satz;
+}
+
+QString MainWindow::checkVerb2(QString satz)
 {
     //lies türkische Nomen ein
     QStringList nomenList;

@@ -26,7 +26,9 @@ private:
     QPushButton *resetButton;
 
     void createInterface();
+    void readHunspell();
     QString checkVerb(QString satz);
+    QString checkVerb2(QString satz);
 
 private slots:
     void about();
