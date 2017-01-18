@@ -181,7 +181,6 @@ void MainWindow::readHunspell()
     //i=6, um die LANG, SET, TRY und FLAG Anweisungen zu übergehen
     //Da in der türkischen Hunspell Datei nur Suffixe mit einer Möglichkeit
     //vorhanden sind, können die dazwischen liegenden Zeilen übersprungen werden
-    QStringList suffixe;
     for (int i=6; i<aff.size(); i+=3) {
         QStringList content=aff.at(i).split(' ', QString::SkipEmptyParts);
         suffixe.insert(content.at(1).toInt(), content.at(3).toUtf8().constData());
@@ -189,7 +188,6 @@ void MainWindow::readHunspell()
 
     //verarbeite Dictionary-Datei
     //i=1, da die erste Zeile die Anzahl der Einträge beinhaltet
-    QVector<DictEntry> dictEntries({});
     for (int i=1; i<dic.size(); i++) {
         QStringList content=dic.at(i).split('/', QString::SkipEmptyParts);
         DictEntry tempEntry(content.at(0));

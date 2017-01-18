@@ -9,6 +9,8 @@ using namespace std;
 #include <QtGui>
 #include <QPushButton>
 #include <QtWidgets>
+#include <QVector>
+#include "dictentry.h"
 
 class MainWindow : public QMainWindow
 {
@@ -24,6 +26,9 @@ private:
     QTextEdit *outputTextEdit;
     QPushButton *analyzeButton;
     QPushButton *resetButton;
+
+    QStringList suffixe;
+    QVector<DictEntry> dictEntries;
 
     void createInterface();
     void readHunspell();
