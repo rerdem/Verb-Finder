@@ -8,6 +8,8 @@
 #include <QPushButton>
 #include <QVector>
 //#include <cstdlib> //itoa()
+#include <QDebug>
+
 #include "mainwindow.h"
 #include "dictentry.h"
 
@@ -134,7 +136,57 @@ void MainWindow::analyze()
         }
 
         readHunspell();
+
+        outputTextEdit->append("\nResults:\n");
+        for (int i=0; i<sentences.size(); i++) {
+            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
+//            outputTextEdit->append(sentences.at(i).toUtf8().constData());
+        }
+
     }
+}
+
+QString MainWindow::checkVerb(QString satz) {
+    QString output=" -> ";
+    if (satz.contains(',')) {
+        QStringList parts=satz.split(',', QString::SkipEmptyParts);
+        for (int i=0; i<parts.length(); i++) {
+            output.append(checkVerb(parts.at(i)));
+        }
+    }
+    else {
+        satz.remove(satz.length()-1,1);
+        QStringList words=satz.split(' ', QString::SkipEmptyParts);
+        //durchlaufe für jedes Wort die gesamte dic und überprüfe, ob es ein Verb ist
+        //BONUS TO DO: speichere beim Einlesen der dic ab welcher Position die Anfangsbuchstaben stehen
+        //um nur die Worte mit dem passenden Anfangsbuchstaben durchsuchen zu müssen
+        for (int i=0; i<words.length(); i++) {
+            bool matchFound=false;
+            for (int j=0; j<dictEntries.length(); j++) {
+                if (matchFound) break;
+                DictEntry tempEntry=dictEntries.at(j);
+                QVector<int> tempEntryRefs=tempEntry.getSuffixRef();
+                QString tempWordPlusSuffix="";
+                if (tempEntryRefs.first()==-1) {
+                    if (words.at(i)==tempEntry.getWord()) {
+                        output.append(" Verb: "+words.at(i));
+                        matchFound=true;
+                    }
+                }
+                else {
+                    for (int k=0; k<tempEntryRefs.length(); k++) {
+                        tempWordPlusSuffix=tempEntry.getWord()+suffixes.at(tempEntryRefs.at(k));
+                        if (words.at(i)==tempWordPlusSuffix) {
+                            if (matchFound) break;
+                            output.append("Verb: "+words.at(i));
+                            matchFound=true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return output;
 }
 
 void MainWindow::readHunspell()
@@ -183,7 +235,7 @@ void MainWindow::readHunspell()
     //vorhanden sind, können die dazwischen liegenden Zeilen übersprungen werden
     for (int i=6; i<aff.size(); i+=3) {
         QStringList content=aff.at(i).split(' ', QString::SkipEmptyParts);
-        suffixe.insert(content.at(1).toInt(), content.at(3).toUtf8().constData());
+        suffixes.insert(content.at(1).toInt(), content.at(3).toUtf8().constData());
     }
 
     //verarbeite Dictionary-Datei
@@ -191,27 +243,55 @@ void MainWindow::readHunspell()
     for (int i=1; i<dic.size(); i++) {
         QStringList content=dic.at(i).split('/', QString::SkipEmptyParts);
         DictEntry tempEntry(content.at(0));
+        //wenn es suffix-Referenzen gibt, füge diese an, sonst setze Wert auf -1
         if (content.size()>1) {
             QStringList references=content.at(1).split(',');
             for (int j=0; j<references.size(); j++) {
                 tempEntry.addToSuffixRef(references.at(j).toInt());
             }
         }
+        else
+            tempEntry.addToSuffixRef(-1);
         dictEntries.push_back(tempEntry);
     }
 
-    outputTextEdit->append("\nsuffixe:\n");
-    for (int i=0; i<suffixe.size(); i++) {
-//            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
-        outputTextEdit->append(suffixe.at(i).toUtf8().constData());
+    //lies zu beachtende Suffixe-Datei ein
+    QStringList relSuf;
+    QFile relSufFile("relevanteSuffixe.txt");
+    if (relSufFile.open(QFile::ReadOnly))
+    {
+        //lies txt in QStringList
+        QTextStream textStream(&relSufFile);
+        textStream.setCodec("UTF-8");
+        while (true)
+        {
+            QString line = textStream.readLine();
+            if (line.isNull())
+                break;
+            else
+                relSuf.append(line);
+        }
+        relSufFile.close();
     }
 
+    //finde IDs aus aff-Datei (suffixe QStringList)
+    for (int i=0; i<suffixes.length(); i++) {
+        for (int j=0; j<relevantSuffixes.length(); j++) {
+            qDebug() << suffixes.at(i) << relSuf.at(j);
+            if (suffixes.at(i).contains(relSuf.at(j))) {
+                relevantSuffixes.append(i);
+            }
+        }
+    }
+
+//    outputTextEdit->append("\nsuffixe:\n");
+//    for (int i=0; i<suffixe.size(); i++) {
+//            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
+//        outputTextEdit->append(suffixe.at(i).toUtf8().constData());
+//    }
+
 }
 
-
-QString MainWindow::checkVerb(QString satz) {
-    return satz;
-}
 
 QString MainWindow::checkVerb2(QString satz)
 {

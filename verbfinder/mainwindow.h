@@ -27,8 +27,9 @@ private:
     QPushButton *analyzeButton;
     QPushButton *resetButton;
 
-    QStringList suffixe;
+    QStringList suffixes;
     QVector<DictEntry> dictEntries;
+    QVector<int> relevantSuffixes;
 
     void createInterface();
     void readHunspell();
