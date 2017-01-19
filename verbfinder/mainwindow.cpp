@@ -7,6 +7,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QVector>
+#include <QChar>
 //#include <cstdlib> //itoa()
 #include <QDebug>
 
@@ -142,7 +143,6 @@ void MainWindow::analyze()
             outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
 //            outputTextEdit->append(sentences.at(i).toUtf8().constData());
         }
-
     }
 }
 
@@ -166,7 +166,8 @@ QString MainWindow::checkVerb(QString satz) {
         //um nur die Worte mit dem passenden Anfangsbuchstaben durchsuchen zu müssen
         for (int i=0; i<words.length(); i++) {
             bool matchFound=false;
-            for (int j=0; j<dictEntries.length(); j++) {
+            int tempLetterIndex=findLetterNumber(words.at(i).at(0).toLower());
+            for (int j=tempLetterIndex; j<dictEntries.length(); j++) {
                 if (matchFound) break;
                 DictEntry tempEntry=dictEntries.at(j);
                 QVector<int> tempEntryRefs=tempEntry.getSuffixRef();
@@ -184,7 +185,7 @@ QString MainWindow::checkVerb(QString satz) {
                             tempWordPlusSuffix=tempEntry.getWord()+suffixes.at(relevantSuffixes.at(k));
                             if (words.at(i)==tempWordPlusSuffix) {
                                 if (matchFound) break;
-                                output.append("Verb: "+words.at(i));
+                                output.append(" Verb: "+words.at(i));
                                 matchFound=true;
                             }
                         }
@@ -205,6 +206,16 @@ QString MainWindow::checkVerb(QString satz) {
         }
     }
     return output;
+}
+
+int MainWindow::findLetterNumber(QChar letter)
+{
+    for (int i=0; i<letterStart.length(); i++)
+        if (letterStart.at(i)==letter)
+            return letterIndex.at(i);
+
+    //der Platzhalter für i und ı liegt auf Position 9
+    return 9;
 }
 
 void MainWindow::readHunspell()
@@ -243,8 +254,7 @@ void MainWindow::readHunspell()
     //lies türkisches Dictionary ein
     QStringList dic;
     QFile dicFile("Turkish.dic");
-    if (dicFile.open(QFile::ReadOnly))
-    {
+    if (dicFile.open(QFile::ReadOnly)) {
 //        outputTextEdit->append("dic open");
         //lies txt in QStringList
         QTextStream textStream(&dicFile);
@@ -260,9 +270,38 @@ void MainWindow::readHunspell()
         dicFile.close();
     }
 
+    //init letterStart Prozess und Variablen
+    QChar letterCheck='a';
+    letterStart.append(letterCheck);
+    letterIndex.append(0);
+
     //verarbeite Dictionary-Datei
     //i=1, da die erste Zeile die Anzahl der Einträge beinhaltet
     for (int i=1; i<dic.size(); i++) {
+        if (dic.at(i).at(0).toLower()!=letterCheck) {
+            if ((letterCheck=='h') || (letterCheck=='#')) {
+                if (letterCheck=='#') {
+                    if (dic.at(i).at(0).toLower()=='j') {
+                        letterCheck=dic.at(i).at(0).toLower();
+                        letterStart.append(letterCheck);
+                        letterIndex.append(i-1);
+                    }
+                }
+                else {
+                    letterCheck='#';
+                    letterStart.append(letterCheck);
+                    letterIndex.append(i-1);
+                }
+            }
+
+            else {
+                //            qDebug() << dic.at(i).toUtf8().toLower().at(0);
+                letterCheck=dic.at(i).at(0).toLower();
+                letterStart.append(letterCheck);
+                letterIndex.append(i-1);
+            }
+        }
+
         QStringList content=dic.at(i).split('/', QString::SkipEmptyParts);
         DictEntry tempEntry(content.at(0));
         //wenn es suffix-Referenzen gibt, füge diese an, sonst setze Wert auf -1

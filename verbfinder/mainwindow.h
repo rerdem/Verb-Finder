@@ -10,6 +10,7 @@ using namespace std;
 #include <QPushButton>
 #include <QtWidgets>
 #include <QVector>
+#include <QChar>
 #include "dictentry.h"
 
 class MainWindow : public QMainWindow
@@ -31,8 +32,12 @@ private:
     QVector<DictEntry> dictEntries;
     QVector<int> relevantSuffixes;
 
+    QVector<QChar> letterStart;
+    QVector<int> letterIndex;
+
     void createInterface();
     void readHunspell();
+    int findLetterNumber(QChar letter);
     QString checkVerb(QString satz);
     QString checkVerb2(QString satz);
 
