@@ -10,3 +10,6 @@ Ein Kontrollsatz.
 
 Onlar kitap 
 okuyorlar. Size gidiyoruz. Ben geldim!
+
+
+Size gidiyoruz, gidiyorum.

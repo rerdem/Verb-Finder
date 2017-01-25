@@ -139,18 +139,23 @@ void MainWindow::analyze()
         readHunspell();
 
         outputTextEdit->append("\nResults:\n");
+        QString arrowString = " -> ";
         for (int i=0; i<sentences.size(); i++) {
-            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
+            outputTextEdit->append(sentences.at(i).toUtf8().constData()+arrowString+checkVerb(sentences.at(i).toUtf8()));
 //            outputTextEdit->append(sentences.at(i).toUtf8().constData());
         }
     }
 }
 
 QString MainWindow::checkVerb(QString satz) {
-    QString output=" ->";
+    QString output="";
+//    qDebug() << satz;
     //entferne Punkt am Ende und alles in Kleinbuchstaben
-    satz.remove(satz.length()-1,1);
-    satz=satz.toLower();
+    if ((satz.at(satz.length()-1)==',') || (satz.at(satz.length()-1)=='.') || (satz.at(satz.length()-1)=='!') || (satz.at(satz.length()-1)=='?')) {
+        satz.remove(satz.length()-1,1);
+        satz=satz.toLower();
+    }
+//    qDebug() << satz;
 
     //gibt es ein Komma, splitte und überprüfe beide Teile separat
     if (satz.contains(',')) {
