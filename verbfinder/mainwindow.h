@@ -11,6 +11,7 @@ using namespace std;
 #include <QtWidgets>
 #include <QVector>
 #include <QChar>
+#include <QMap>
 #include "dictentry.h"
 
 class MainWindow : public QMainWindow
@@ -29,17 +30,19 @@ private:
     QPushButton *resetButton;
 
     QStringList suffixes;
-    QVector<DictEntry> dictEntries;
-    QVector<int> relevantSuffixes;
+//    QVector<DictEntry> dictEntries;
+//    QVector<int> relevantSuffixes;
+
+    QMap <QString, QString> dictionary;
+    QMap <int, QString> relevantSuffixes;
+    QMap <QString, QString> stemList;
 
     QVector<QChar> letterStart;
     QVector<int> letterIndex;
 
     void createInterface();
     void readHunspell();
-    int findLetterNumber(QChar letter);
     QString checkVerb(QString satz);
-    QString checkVerb2(QString satz);
 
 private slots:
     void about();

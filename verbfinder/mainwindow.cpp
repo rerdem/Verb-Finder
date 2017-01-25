@@ -8,7 +8,7 @@
 #include <QPushButton>
 #include <QVector>
 #include <QChar>
-//#include <cstdlib> //itoa()
+#include <QMap>
 #include <QDebug>
 
 #include "mainwindow.h"
@@ -18,6 +18,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
+    readHunspell();
     createInterface();
 }
 
@@ -136,7 +137,7 @@ void MainWindow::analyze()
             outputTextEdit->append(sentences.at(i).toUtf8().constData());
         }
 
-        readHunspell();
+//        readHunspell();
 
         outputTextEdit->append("\nResults:\n");
         QString arrowString = " -> ";
@@ -170,58 +171,70 @@ QString MainWindow::checkVerb(QString satz) {
         //BONUS TO DO: speichere beim Einlesen der dic ab welcher Position die Anfangsbuchstaben stehen
         //um nur die Worte mit dem passenden Anfangsbuchstaben durchsuchen zu müssen
         for (int i=0; i<words.length(); i++) {
-            bool matchFound=false;
-            int tempLetterIndex=findLetterNumber(words.at(i).at(0).toLower());
-            for (int j=tempLetterIndex; j<dictEntries.length(); j++) {
-                if (matchFound) break;
-                DictEntry tempEntry=dictEntries.at(j);
-                QVector<int> tempEntryRefs=tempEntry.getSuffixRef();
-                QString tempWordPlusSuffix="";
-                if (tempEntryRefs.first()==-1) {
-                    if (words.at(i)==tempEntry.getWord()) {
+            QString currentStem="";
+            QMap<QString, QString>::iterator iterStem = stemList.find(words.at(i));
+            if (iterStem!=stemList.end()) {
+                currentStem=iterStem.value();
+
+                QVector<int> currentSuffixList;
+                QString unprocessedSuffixes="";
+                QMap<QString, QString>::iterator iterDict = dictionary.find(currentStem);
+                if (iterDict!=dictionary.end())
+                    unprocessedSuffixes=iterDict.value();
+                QStringList processedSuffixes=unprocessedSuffixes.split(',', QString::SkipEmptyParts);
+                if (processedSuffixes.length()>0) {
+                    for (int j=0; j<processedSuffixes.length(); j++) {
+                        currentSuffixList.append(processedSuffixes.at(j).toInt());
+                    }
+                }
+
+                if (currentSuffixList.first()==-1) {
+                    if (words.at(i)==currentStem) {
                         output.append(" Verb: "+words.at(i));
-                        matchFound=true;
                     }
                 }
                 else {
-                    for (int k=0; k<relevantSuffixes.length(); k++) {
-                        if (matchFound) break;
-                        if (tempEntryRefs.contains(relevantSuffixes.at(k))) {
-                            tempWordPlusSuffix=tempEntry.getWord()+suffixes.at(relevantSuffixes.at(k));
-                            if (words.at(i)==tempWordPlusSuffix) {
-                                if (matchFound) break;
+                    for (int j=0; j<currentSuffixList.length(); j++) {
+                        if (relevantSuffixes.contains(currentSuffixList.at(j))) {
+
+                            QString compareString="";
+                            compareString.append(currentStem);
+
+                            QMap<int, QString>::iterator iterSuff = relevantSuffixes.find(currentSuffixList.at(j));
+                            if (iterSuff!=relevantSuffixes.end())
+                                compareString.append(iterSuff.value());
+
+                            if (words.at(i)==compareString) {
                                 output.append(" Verb: "+words.at(i));
-                                matchFound=true;
+                                break;
                             }
                         }
                     }
-
-//                    for (int k=0; k<tempEntryRefs.length(); k++) {
-//                        if (matchFound) break;
-//                        tempWordPlusSuffix=tempEntry.getWord()+suffixes.at(tempEntryRefs.at(k));
-////                        outputTextEdit->append(tempWordPlusSuffix+"\n");
-//                        if (words.at(i)==tempWordPlusSuffix) {
-//                            if (matchFound) break;
-//                            output.append("Verb: "+words.at(i));
-//                            matchFound=true;
-//                        }
-//                    }
                 }
+                //FALLBACK WEGEN GIDIYORUZ
+                //wenn bisher kein Verb gefunden wurde, überprüfe, ob das Wort mit einem
+                //gesuchten Suffix endet, überprüfe dann im dictionary, ob das Wort als
+                //eigener Eintrag ohne Suffix existiert
+                if (output=="") {
+                    QMap<int, QString>::const_iterator iterRel = relevantSuffixes.constBegin();
+                    while (iterRel != relevantSuffixes.constEnd()) {
+                        if (words.at(i).endsWith(iterRel.value())) {
+                            iterDict = dictionary.find(words.at(i));
+                            if (iterDict!=dictionary.end())
+                                output.append(" Verb: "+words.at(i));
+                            break;
+                        }
+                        ++iterRel;
+                    }
+                }
+                //END FALLBACK WEGEN GIDIYORUZ
+
             }
         }
     }
     return output;
 }
 
-int MainWindow::findLetterNumber(QChar letter)
-{
-    for (int i=0; i<letterStart.length(); i++)
-        if (letterStart.at(i)==letter)
-            return letterIndex.at(i);
-
-    //der Platzhalter für i und ı liegt auf Position 9
-    return 9;
-}
 
 void MainWindow::readHunspell()
 {
@@ -256,6 +269,7 @@ void MainWindow::readHunspell()
         suffixes.insert(content.at(1).toInt(), content.at(3).toUtf8().constData());
     }
 
+
     //lies türkisches Dictionary ein
     QStringList dic;
     QFile dicFile("Turkish.dic");
@@ -275,52 +289,19 @@ void MainWindow::readHunspell()
         dicFile.close();
     }
 
-    //init letterStart Prozess und Variablen
-    QChar letterCheck='a';
-    letterStart.append(letterCheck);
-    letterIndex.append(0);
-
     //verarbeite Dictionary-Datei
     //i=1, da die erste Zeile die Anzahl der Einträge beinhaltet
     for (int i=1; i<dic.size(); i++) {
-        if (dic.at(i).at(0).toLower()!=letterCheck) {
-            if ((letterCheck=='h') || (letterCheck=='#')) {
-                if (letterCheck=='#') {
-                    if (dic.at(i).at(0).toLower()=='j') {
-                        letterCheck=dic.at(i).at(0).toLower();
-                        letterStart.append(letterCheck);
-                        letterIndex.append(i-1);
-                    }
-                }
-                else {
-                    letterCheck='#';
-                    letterStart.append(letterCheck);
-                    letterIndex.append(i-1);
-                }
-            }
-
-            else {
-                //            qDebug() << dic.at(i).toUtf8().toLower().at(0);
-                letterCheck=dic.at(i).at(0).toLower();
-                letterStart.append(letterCheck);
-                letterIndex.append(i-1);
-            }
-        }
-
         QStringList content=dic.at(i).split('/', QString::SkipEmptyParts);
-        DictEntry tempEntry(content.at(0));
         //wenn es suffix-Referenzen gibt, füge diese an, sonst setze Wert auf -1
-        if (content.size()>1) {
-            QStringList references=content.at(1).split(',');
-            for (int j=0; j<references.size(); j++) {
-                tempEntry.addToSuffixRef(references.at(j).toInt());
-            }
+        if (content.size()>1)
+            dictionary.insert(content.at(0), content.at(1));
+        else {
+            int intToString=-1;
+            dictionary.insert(content.at(0), QString::number(intToString));
         }
-        else
-            tempEntry.addToSuffixRef(-1);
-//        qDebug() << tempEntry.getWord() << tempEntry.getSuffixRef();
-        dictEntries.push_back(tempEntry);
     }
+
 
     //lies zu beachtende Suffixe-Datei ein
     QStringList relSuf;
@@ -351,29 +332,20 @@ void MainWindow::readHunspell()
 //            qDebug() << suffixes.at(i).endsWith(relSuf.at(j));
             if (suffixes.at(i).endsWith(relSuf.at(j))) {
 //            if (suffixes.at(i).contains(relSuf.at(j))) {
-                relevantSuffixes.append(i);
+                relevantSuffixes.insert(i, suffixes.at(i));
+//                relevantSuffixes.append(i);
             }
         }
     }
 
-//    outputTextEdit->append("\nSuffixe:\n");
-//    for (int i=0; i<suffixes.size(); i++) {
-//        outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
-//        outputTextEdit->append(suffixes.at(i).toUtf8().constData());
-//    }
 
-}
-
-
-QString MainWindow::checkVerb2(QString satz)
-{
-    //lies türkische Nomen ein
-    QStringList nomenList;
-    QFile textFile("TR_nomen_dict.txt");
-    if (textFile.open(QFile::ReadOnly))
-    {
+    //lies türkischen Stemmer ein
+    QStringList stems;
+    QFile stemFile("generated.dict");
+    if (stemFile.open(QFile::ReadOnly)) {
+//        outputTextEdit->append("dic open");
         //lies txt in QStringList
-        QTextStream textStream(&textFile);
+        QTextStream textStream(&stemFile);
         textStream.setCodec("UTF-8");
         while (true)
         {
@@ -381,153 +353,15 @@ QString MainWindow::checkVerb2(QString satz)
             if (line.isNull())
                 break;
             else
-                nomenList.append(line);
+                stems.append(line);
         }
-        textFile.close();
-
-        //füge Personalpronomen hinzu
-        nomenList.append("ben");
-        nomenList.append("sen");
-        nomenList.append("o");
-        nomenList.append("biz");
-        nomenList.append("siz");
-        nomenList.append("onlar");
-
+        stemFile.close();
     }
 
-    //finde Verb
-    QStringList worte = satz.split(" ");
-    bool langerSatz=false;
-    QString ausgabe="Keine Ausgabe";
-    if ((worte.length()-1)!= 0) {
-        QString erstes = worte.value( 0 );
-        langerSatz=true;
+    //verarbeite Stem-Datei
+    //i=4, da die ersten 4 Zeilen Notizen beinhalten
+    for (int i=4; i<stems.size(); i++) {
+        QStringList content=stems.at(i).split('\t', QString::SkipEmptyParts);
+        stemList.insert(content.at(0), content.at(1));
     }
-    QString verb = worte.value( worte.length() - 1 );
-
-    //Präsens
-    if (verb.contains("yorum")) {
-        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 1. Pers. Singular";
-        if (langerSatz) {
-            bool subject=false;
-            for (int i=0; i<nomenList.length(); i++) {
-                if (worte.value(0).toLower()==nomenList.value(i).toLower())
-                {
-                    ausgabe.append(" Subjekt: ");
-                    ausgabe.append(worte.value(0));
-                    subject=true;
-                    break;
-                }
-            }
-            if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
-        }
-        else ausgabe.append(" Subjekt im Verb enthalten.");
-        return ausgabe;
-    }
-    else {
-        if (verb.contains("yorsun")) {
-            QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 2. Pers. Singular";
-            if (langerSatz) {
-                bool subject=false;
-                for (int i=0; i<nomenList.length(); i++) {
-                    if (worte.value(0).toLower()==nomenList.value(i).toLower())
-                    {
-                        ausgabe.append(" Subjekt: ");
-                        ausgabe.append(worte.value(0));
-                        subject=true;
-                        break;
-                    }
-                }
-                if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
-            }
-            else ausgabe.append(" Subjekt im Verb enthalten.");
-            return ausgabe;
-        }
-        else {
-            if (verb.contains("yoruz")) {
-                QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 1. Pers. Plural";
-                if (langerSatz) {
-                    bool subject=false;
-                    for (int i=0; i<nomenList.length(); i++) {
-                        if (worte.value(0).toLower()==nomenList.value(i).toLower())
-                        {
-                            ausgabe.append(" Subjekt: ");
-                            ausgabe.append(worte.value(0));
-                            subject=true;
-                            break;
-                        }
-                    }
-                    if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
-                }
-                else ausgabe.append(" Subjekt im Verb enthalten.");
-                return ausgabe;
-            }
-            else {
-                if (verb.contains("yorsunuz")) {
-                    QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 2. Pers. Plural";
-                    if (langerSatz) {
-                        bool subject=false;
-                        for (int i=0; i<nomenList.length(); i++) {
-                            if (worte.value(0).toLower()==nomenList.value(i).toLower())
-                            {
-                                ausgabe.append(" Subjekt: ");
-                                ausgabe.append(worte.value(0));
-                                subject=true;
-                                break;
-                            }
-                        }
-                        if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
-                    }
-                    else ausgabe.append(" Subjekt im Verb enthalten.");
-                    return ausgabe;
-                }
-                else {
-                    if (verb.contains("yorlar")) {
-                        QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 3. Pers. Plural";
-                        if (langerSatz) {
-                            bool subject=false;
-                            for (int i=0; i<nomenList.length(); i++) {
-                                if (worte.value(0).toLower()==nomenList.value(i).toLower())
-                                {
-                                    ausgabe.append(" Subjekt: ");
-                                    ausgabe.append(worte.value(0));
-                                    subject=true;
-                                    break;
-                                }
-                            }
-                            if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
-                        }
-                        else ausgabe.append(" Subjekt im Verb enthalten.");
-                        return ausgabe;
-                    }
-                    else {
-                        if (verb.contains("yor")) {
-                            QString ausgabe=" Verb: "+verb.mid(0,verb.length()-1)+" -> Präs. 3. Pers. Singular";
-                            if (langerSatz) {
-                                bool subject=false;
-                                for (int i=0; i<nomenList.length(); i++) {
-                                    if (worte.value(0).toLower()==nomenList.value(i).toLower())
-                                    {
-                                        ausgabe.append(" Subjekt: ");
-                                        ausgabe.append(worte.value(0));
-                                        subject=true;
-                                        break;
-                                    }
-                                }
-                                if (!subject) ausgabe.append(" Subjekt im Verb enthalten oder nicht gefunden.");
-                            }
-                            else ausgabe.append(" Subjekt im Verb enthalten.");
-                            return ausgabe;
-                        }
-                        else {
-                            QString ausgabe=" Kein grammatikalisch korrekter Satz des türkischen Präsens.";
-                            return ausgabe;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return ausgabe;
 }
