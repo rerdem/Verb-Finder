@@ -108,7 +108,7 @@ void MainWindow::analyze()
         QStringList sentences;
         for (int i=0; i<stringList.size(); i++) {
             for (int j=0; j<stringList.at(i).length(); j++) {
-                if (stringList.at(i).at(j)=='.') {
+                if ((stringList.at(i).at(j)=='.') || (stringList.at(i).at(j)=='!') || (stringList.at(i).at(j)=='?')) {
                     buffer.append(stringList.at(i).at(j));
                     sentences.append(buffer);
                     buffer="";
@@ -331,8 +331,10 @@ void MainWindow::readHunspell()
             QString line = textStream.readLine();
             if (line.isNull())
                 break;
-            else
-                relSuf.append(line);
+            else {
+                if ((line != "") && (line.at(0)!= '#'))
+                    relSuf.append(line);
+            }
         }
         relSufFile.close();
     }
