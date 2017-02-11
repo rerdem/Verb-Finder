@@ -12,7 +12,6 @@ using namespace std;
 #include <QVector>
 #include <QChar>
 #include <QMap>
-#include "dictentry.h"
 
 class MainWindow : public QMainWindow
 {
@@ -30,8 +29,6 @@ private:
     QPushButton *resetButton;
 
     QStringList suffixes;
-//    QVector<DictEntry> dictEntries;
-//    QVector<int> relevantSuffixes;
 
     QMap <QString, QString> dictionary;
     QMap <int, QString> relevantSuffixes;

@@ -10,9 +10,7 @@
 #include <QChar>
 #include <QMap>
 #include <QDebug>
-
 #include "mainwindow.h"
-#include "dictentry.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -133,30 +131,25 @@ void MainWindow::analyze()
         }
         outputTextEdit->append("\nProcessed:\n");
         for (int i=0; i<sentences.size(); i++) {
-//            outputTextEdit->append(sentences.at(i).toUtf8().constData()+checkVerb(sentences.at(i).toUtf8()));
             outputTextEdit->append(sentences.at(i).toUtf8().constData());
         }
-
-//        readHunspell();
 
         outputTextEdit->append("\nResults:\n");
         QString arrowString = " -> ";
         for (int i=0; i<sentences.size(); i++) {
             outputTextEdit->append(sentences.at(i).toUtf8().constData()+arrowString+checkVerb(sentences.at(i).toUtf8()));
-//            outputTextEdit->append(sentences.at(i).toUtf8().constData());
         }
     }
 }
 
 QString MainWindow::checkVerb(QString satz) {
     QString output="";
-//    qDebug() << satz;
+
     //entferne Punkt am Ende und alles in Kleinbuchstaben
     if ((satz.at(satz.length()-1)==',') || (satz.at(satz.length()-1)=='.') || (satz.at(satz.length()-1)=='!') || (satz.at(satz.length()-1)=='?')) {
         satz.remove(satz.length()-1,1);
         satz=satz.toLower();
     }
-//    qDebug() << satz;
 
     //gibt es ein Komma, splitte und überprüfe beide Teile separat
     if (satz.contains(',')) {
@@ -167,9 +160,10 @@ QString MainWindow::checkVerb(QString satz) {
     }
     else {
         QStringList words=satz.split(' ', QString::SkipEmptyParts);
-        //durchlaufe für jedes Wort die gesamte dic und überprüfe, ob es ein Verb ist
-        //BONUS TO DO: speichere beim Einlesen der dic ab welcher Position die Anfangsbuchstaben stehen
-        //um nur die Worte mit dem passenden Anfangsbuchstaben durchsuchen zu müssen
+        //für jedes Wort:
+        //stemme, dann finde Stamm in dic
+        //wenn Stamm=Wort ist und keine Suffixe hat, Verb gefunden
+        //sonst überprüfe, ob Stamm relevante Suffixe zulässt und finde das richtige
         for (int i=0; i<words.length(); i++) {
             QString currentStem="";
             QMap<QString, QString>::iterator iterStem = stemList.find(words.at(i));
@@ -227,7 +221,7 @@ QString MainWindow::checkVerb(QString satz) {
                         ++iterRel;
                     }
                 }
-                //END FALLBACK WEGEN GIDIYORUZ
+                //ENDE FALLBACK WEGEN GIDIYORUZ
 
             }
         }
@@ -241,14 +235,11 @@ void MainWindow::readHunspell()
     //lies türkische Affix-Datei ein
     QStringList aff;
     QFile affFile("Turkish.aff");
-    if (affFile.open(QFile::ReadOnly))
-    {
-//        outputTextEdit->append("aff open");
+    if (affFile.open(QFile::ReadOnly)) {
         //lies txt in QStringList
         QTextStream textStream(&affFile);
         textStream.setCodec("UTF-8");
-        while (true)
-        {
+        while (true) {
             QString line = textStream.readLine();
             if (line.isNull())
                 break;
@@ -263,23 +254,18 @@ void MainWindow::readHunspell()
     //Da in der türkischen Hunspell Datei nur Suffixe mit einer Möglichkeit
     //vorhanden sind, können die dazwischen liegenden Zeilen übersprungen werden
     for (int i=6; i<aff.size(); i+=3) {
-//        qDebug() << aff.at(i);
         QStringList content=aff.at(i).split(' ', QString::SkipEmptyParts);
-//        qDebug() << content.at(1).toInt() << content.at(3).toUtf8().constData();
         suffixes.insert(content.at(1).toInt(), content.at(3).toUtf8().constData());
     }
-
 
     //lies türkisches Dictionary ein
     QStringList dic;
     QFile dicFile("Turkish.dic");
     if (dicFile.open(QFile::ReadOnly)) {
-//        outputTextEdit->append("dic open");
         //lies txt in QStringList
         QTextStream textStream(&dicFile);
         textStream.setCodec("UTF-8");
-        while (true)
-        {
+        while (true) {
             QString line = textStream.readLine();
             if (line.isNull())
                 break;
@@ -302,18 +288,14 @@ void MainWindow::readHunspell()
         }
     }
 
-
     //lies zu beachtende Suffixe-Datei ein
     QStringList relSuf;
     QFile relSufFile("relevanteSuffixe.txt");
-    if (relSufFile.open(QFile::ReadOnly))
-    {
-//        outputTextEdit->append("suf open");
+    if (relSufFile.open(QFile::ReadOnly)) {
         //lies txt in QStringList
         QTextStream textStream(&relSufFile);
         textStream.setCodec("UTF-8");
-        while (true)
-        {
+        while (true) {
             QString line = textStream.readLine();
             if (line.isNull())
                 break;
@@ -328,27 +310,20 @@ void MainWindow::readHunspell()
     //finde IDs aus aff-Datei (suffixe QStringList)
     for (int i=0; i<suffixes.length(); i++) {
         for (int j=0; j<relSuf.length(); j++) {
-//            qDebug() << suffixes.at(i) << relSuf.at(j);
-//            qDebug() << suffixes.at(i).endsWith(relSuf.at(j));
             if (suffixes.at(i).endsWith(relSuf.at(j))) {
-//            if (suffixes.at(i).contains(relSuf.at(j))) {
                 relevantSuffixes.insert(i, suffixes.at(i));
-//                relevantSuffixes.append(i);
             }
         }
     }
-
 
     //lies türkischen Stemmer ein
     QStringList stems;
     QFile stemFile("generated.dict");
     if (stemFile.open(QFile::ReadOnly)) {
-//        outputTextEdit->append("dic open");
         //lies txt in QStringList
         QTextStream textStream(&stemFile);
         textStream.setCodec("UTF-8");
-        while (true)
-        {
+        while (true) {
             QString line = textStream.readLine();
             if (line.isNull())
                 break;

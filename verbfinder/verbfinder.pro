@@ -13,8 +13,6 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp \
-    dictentry.cpp
+        mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    dictentry.h
+HEADERS  += mainwindow.h
