@@ -182,12 +182,7 @@ QString MainWindow::checkVerb(QString satz) {
                     }
                 }
 
-                if (currentSuffixList.first()==-1) {
-                    if (words.at(i)==currentStem) {
-                        output.append(" Verb: "+words.at(i));
-                    }
-                }
-                else {
+                if (currentSuffixList.first()!=-1) {
                     for (int j=0; j<currentSuffixList.length(); j++) {
                         if (relevantSuffixes.contains(currentSuffixList.at(j))) {
 
