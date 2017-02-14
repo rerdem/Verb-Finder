@@ -28,9 +28,9 @@ dınız
 dünüz
 dunuz
 diler
-dıler
+dılar
 düler
-duler
+dular
 tim
 tım
 tüm
@@ -52,6 +52,6 @@ tınız
 tünüz
 tunuz
 tiler
-tıler
+tılar
 tüler
-tuler
+tular
